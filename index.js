@@ -19,13 +19,8 @@ fs.writeFile(OUTPUT, '', () => {
 // Get page data from CSV file INPUT and run an audit for each page.
 // Each line in INPUT begins with a URL followed (optionally) by other CSV data.
 // For example: https://johnlewis.com,John Lewis,homepage
-const inputFileText = fs.readFileSync(INPUT, 'utf8');
-const allPageData = inputFileText.split('\n');
-for (let pageData of allPageData) {
-  if (pageData !== '') {
-    audit(pageData);
-  }
-}
+const inputFileText = fs.readFileSync(INPUT, 'utf8').trim();
+audit(inputFileText.split('\n'));
 
 // Launch Chrome, run a Lighthouse audit, then kill Chrome.
 // Code is from https://github.com/GoogleChrome/lighthouse
@@ -39,10 +34,12 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
 }
 
 // Run a Lighthouse audit for a web page.
-// pageData is a CSV string beginning with a URL.
+// pages is an array of CSV strings, each beginning with a URL.
 // For example: https://johnlewis.com,John Lewis,homepage
-function audit(pageData) {
-  const url = pageData.split(',')[0];
+function audit(pages) {
+  console.log('Pages to audit:', pages);
+  const page = pages.pop();
+  const url = page.split(',')[0];
   launchChromeAndRunLighthouse(url, OPTIONS).then(results => {
     const runtimeErrorMessage = results.runtimeError.message;
     if (runtimeErrorMessage) {
@@ -55,7 +52,15 @@ function audit(pageData) {
       for (let category of categories) {
         scores.push(category.score);
       }
-      fs.appendFileSync(OUTPUT, `${scores.join(',')},${pageData}\n`);
+      const pageScores = `${page},${scores.join(',')}\n`;
+      fs.appendFileSync(OUTPUT, pageScores);
+      console.log(pageScores);
+      // If there are still pages to audit, recursively call the function.
+      if (pages.length) {
+        audit(pages);
+      } else {
+        console.log('Completed audit');
+      }
     }
   });
 }
