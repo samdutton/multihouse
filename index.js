@@ -37,7 +37,6 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
 // pages is an array of CSV strings, each beginning with a URL.
 // For example: https://johnlewis.com,John Lewis,homepage
 function audit(pages) {
-  console.log('Pages to audit:', pages);
   const page = pages.pop();
   const url = page.split(',')[0];
   launchChromeAndRunLighthouse(url, OPTIONS).then(results => {
@@ -50,7 +49,7 @@ function audit(pages) {
       const categories = Object.values(results.categories);
       let scores = [];
       for (let category of categories) {
-        scores.push(category.score);
+        scores.push(Math.round(category.score * 100));
       }
       const pageScores = `${page},${scores.join(',')}\n`;
       fs.appendFileSync(OUTPUT, pageScores);
