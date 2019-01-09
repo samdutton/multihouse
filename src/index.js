@@ -24,9 +24,12 @@ const ERROR = 'error.txt';
 const INPUT = 'input.csv';
 const OUTPUT = 'output.csv';
 
-// Delete existing output data.
+// Delete existing output and error data.
 fs.writeFile(OUTPUT, '', () => {
   console.log('Deleted existing output data');
+});
+fs.writeFile(ERROR, '', () => {
+  console.log('Deleted existing error data');
 });
 
 // Get page data from CSV file INPUT and run an audit for each page.
@@ -47,15 +50,15 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
 }
 
 // Run a Lighthouse audit for a web page.
-// pages is an array of CSV strings, each beginning with a URL.
-// For example: https://johnlewis.com,John Lewis,homepage
+// pages is an array of CSV strings, each ending with a URL.
+// For example: John Lewis,homepage,https://johnlewis.com
 function audit(pages) {
   const page = pages.pop();
-  const url = page.split(',')[0];
+  const url = page.split(',').slice(-1)[0];
   launchChromeAndRunLighthouse(url, OPTIONS).then(results => {
     const runtimeErrorMessage = results.runtimeError.message;
     if (runtimeErrorMessage) {
-      console.error(`\n>>>>>>> Runtime error for ${url}\n`);
+      console.error(`\n>>>>>>> Runtime error for ${url}\n\n`);
       fs.appendFileSync(ERROR, 
         `Runtime error for ${url}: ${runtimeErrorMessage}\n\n`);
     } else {
@@ -67,7 +70,7 @@ function audit(pages) {
       const pageScores = `${page},${scores.join(',')}\n`;
       fs.appendFileSync(OUTPUT, pageScores);
       console.log(pageScores);
-      // If there are still pages to audit, recursively call the function.
+      // If there are still pages to audit, call audit() again.
       if (pages.length) {
         audit(pages);
       } else {

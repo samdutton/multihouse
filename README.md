@@ -4,11 +4,11 @@ Each line in _input.csv_ begins with a URL, optionally followed by other comma-s
 
 For example: 
 
-  `https://johnlewis.com,John Lewis,homepage`
+  `John Lewis,homepage,https://johnlewis.com`
 
 Results are written to _output.csv_ with one line per URL. For example: 
 
-  `https://johnlewis.com,John Lewis,homepage, 0.50,0.38,0.78,0.87,1`
+  `John Lewis,homepage,https://johnlewis.com,0.50,0.38,0.78,0.87,1`
 
 _input.csv_ and _output.csv_ in this repo include example input and output data.
 
