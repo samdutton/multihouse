@@ -46,7 +46,12 @@ audit(inputFileText.split('\n'));
 // pages is an array of CSV strings, each ending with a URL.
 // For example: John Lewis,homepage,https://johnlewis.com
 function audit(pages) {
+  // Each page corresponds to line in the CSV file INPUT.
   const page = pages.pop();
+  // Don't audit if this line in INPUT is blank or a comment.
+  if (page === '' || page[0] === '#') {
+    return
+  }
   // Note that the split() call below doesn't work if URLs have commas
   const url = page.split(',').slice(-1)[0];
   launchChromeAndRunLighthouse(url, OPTIONS).then(results => {
