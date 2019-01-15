@@ -153,7 +153,7 @@ function getOutput(testResults) {
     output.push(pageData.join(','));
   }
   console.log('output:', output.join(','));
-  return output.join(',');
+  return output.join('\n');
 }
 
 
