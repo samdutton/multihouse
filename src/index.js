@@ -48,7 +48,7 @@ let runIndex = 0;
 // If required, delete existing output and error data.
 if (!APPEND_OUTPUT) {
   fs.writeFile(OUTPUT, '', () => {
-    console.log('Deleted old output data\n');
+    console.log('Deleted old output data');
   });
 }
 fs.writeFile(ERROR, '', () => {
@@ -70,8 +70,7 @@ audit(inputData);
 // pages is an array of CSV strings, each ending with a URL.
 // For example: John Lewis,homepage,https://johnlewis.com
 function audit(pages) {
-  console.log('runIndex:', runIndex, 'pageIndex:', pageIndex,
-    'pages.length:', pages.length);
+  console.log(`Run ${runIndex + 1}: URL ${pageIndex + 1} of ${pages.length}`);
   // page corresponds to a line of data in the CSV file INPUT.
   const page = pages[pageIndex];
   // The page URL is the last item on each line of CSV data.
@@ -86,9 +85,7 @@ function audit(pages) {
   launchChromeAndRunLighthouse(url, OPTIONS).then(results => {
     const error = results.runtimeError.message;
     if (error) {
-      const message = `Runtime error for ${url}\n${error}\n`;
-      console.error('>>>>' + message);
-      fs.appendFileSync(ERROR, message);
+      logError(`Runtime error for ${url}:\n${error}\n`);
     } else {
       const categories = Object.values(results.categories);
       for (let category of categories) {
@@ -98,23 +95,25 @@ function audit(pages) {
         if (!data[pageIndex].scores[category.title]) {
           data[pageIndex].scores[category.title] = [];
         }
-        console.log('Pushing score:',category.title, Math.round(category.score * 100));
-        data[pageIndex].scores[category.title].
-          push(Math.round(category.score * 100));
+        const score = Math.round(category.score * 100);
+        if (score === 0) {
+          logError(`Zero ${category.title} score for ${url}. 
+          This data will be discarded.`);
+        } else {
+          console.log(`${url}: ${category.title} ${score}`);
+          data[pageIndex].scores[category.title].push(score);
+        }
       }
       // const pageScores = `${page},${scores.join(',')}\n`;
       // If there are still pages to audit, call audit() again.
     }
   }).catch(error => {
-    console.error(`\n>>>>>>> Caught error for ${url}:\n${error}`);
-    fs.appendFileSync(ERROR,
-      `Caught error for ${url}:\n${error}\n\n`);
+    logError(`Caught error for ${url}:\n${error}`);
   }).finally(() => {
     // If more pages still to audit on this run, begin next audit.
     // Otherwise if there are more runs to do, begin next run.
     // Otherwise, write data to output file.
     if (++pageIndex < pages.length) {
-      console.log('Audit next page');
       audit(pages);
     } else if (++runIndex < NUM_RUNS) {
       console.log('Start run', runIndex + 1);
@@ -139,8 +138,10 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
   });
 }
 
-// data is an array of objects: metadata and scores for each URL.
-// This function adds medianScores to each object.
+// The testResults parameter is an array of objects, each of which has
+// Lighthouse scores and (optional) metadata for each URL audited.
+// The function returns a stringified version of this array
+// with medianScores added to each object.
 function getOutput(testResults) {
   let output = [];
   console.log('Categories: ', Object.keys(testResults[0].scores));
@@ -152,7 +153,7 @@ function getOutput(testResults) {
     }
     output.push(pageData.join(','));
   }
-  console.log('output:', output.join(','));
+  console.log('output:', output.join('\n'));
   return output.join('\n');
 }
 
@@ -172,3 +173,7 @@ function median(array) {
   }
 }
 
+function logError(error) {
+  console.error(`>>>> ${error}`);
+  fs.appendFileSync(ERROR, `${error}\n\n`);
+}
