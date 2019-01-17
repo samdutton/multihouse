@@ -23,6 +23,7 @@ let pageIndex = 0;
 let runIndex = 0;
 
 let appendOutput = false;
+let chromeFlags = ['--headless'];
 let inputFile = 'input.csv';
 let numRuns = 3;
 let outputFile = 'output.csv';
@@ -34,6 +35,7 @@ let okToStart = true;
 const argv = require('yargs')
   .alias('a', 'append')
   .alias('c', 'categories')
+  .alias('f', 'flags')
   .alias('h', 'help')
   .alias('i', 'input')
   .alias('m', 'metadata')
@@ -42,6 +44,8 @@ const argv = require('yargs')
   .describe('a', 'Append output to existing data in output file')
   .describe('c', 'Audits to run: one or more comma-separated values,\n' +
     'default is:\n' + `${onlyCategories.join(',')}`)
+  .describe('f', 'One or more comma-separated Chrome flags *without* dashes,\n' +
+    `default is ${chromeFlags}`)
   .describe('i', `Input file, default is ${inputFile}`)
   .describe('m', 'Headings for optional page metadata')
   .describe('o', `Output file, default is ${outputFile}`)
@@ -66,6 +70,12 @@ if (argv.c) {
       `${argv.c} is not valid`);
     okToStart = false;
   }
+}
+
+if (argv.f) {
+  chromeFlags = argv.f.split(',').map(flag => {
+    return `--${flag}`;
+  });
 }
 
 if (argv.i) {
@@ -103,7 +113,7 @@ if (argv.v) {
 }
 
 const OPTIONS = {
-  chromeFlags: ['--headless'],
+  chromeFlags: chromeFlags,
   // logLevel: 'info'
   onlyCategories: onlyCategories
 };
