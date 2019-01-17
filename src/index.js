@@ -15,63 +15,130 @@ const chromeLauncher = require('chrome-launcher');
 const fs = require('fs');
 const lighthouse = require('lighthouse');
 
-const OPTIONS = {
-  chromeFlags: ['--headless'],
-  // logLevel: 'info'
-  onlyCategories: ['performance', 'seo']
-};
+const ERROR_LOG = 'error-log.txt';
+const VERSION = '1.0 beta';
 
-const APPEND_OUTPUT = true;
-const ERROR = 'error.txt';
-const INPUT = 'input.csv';
-const OUTPUT = 'output.csv';
-
-const NUM_RUNS = 3;
-
+let numErrors = 0;
 let pageIndex = 0;
 let runIndex = 0;
 
-// const readline = require('readline');
+let appendOutput = false;
+let inputFile = 'input.csv';
+let numRuns = 3;
+let outputFile = 'output.csv';
+let onlyCategories =
+  ['performance','pwa','best-practices','accessibility', 'seo'];
 
-// const rl = readline.createInterface({
-//   input: process.stdin,
-//   output: process.stdout
-// });
+let okToStart = true;
 
-// rl.question('What do you think of Node.js? ', (answer) => {
-//   // TODO: Log the answer in a database
-//   console.log(`Thank you for your valuable feedback: ${answer}`);
+const argv = require('yargs')
+  .alias('a', 'append')
+  .alias('c', 'categories')
+  .alias('h', 'help')
+  .alias('i', 'input')
+  .alias('m', 'metadata')
+  .alias('o', 'output')
+  .alias('r', 'runs')
+  .describe('a', 'Append output to existing data in output file')
+  .describe('c', 'Audits to run: one or more comma-separated values,\n' +
+    'default is:\n' + `${onlyCategories.join(',')}`)
+  .describe('i', `Input file, default is ${inputFile}`)
+  .describe('m', 'Headings for optional page metadata')
+  .describe('o', `Output file, default is ${outputFile}`)
+  .describe('r', 'Number of times audits are run to calculate median values, ' +
+    `default is ${numRuns}`)
+  .help('h')
+  .argv;
 
-//   rl.close();
-// });
+if (argv.a) {
+  appendOutput = true;
+}
+
+if (argv.c) {
+  const isValid =
+    /(performance|pwa|best-practices|accessibility|seo|,)+/.test(argv.c);
+  if (isValid) {
+    console.log('', );
+    onlyCategories = argv.c.split(',');
+    console.log(`Auditing categories: ${onlyCategories}`);
+  } else {
+    console.error('--c option must be one or more comma-separated values: ' +
+      `${argv.c} is not valid`);
+    okToStart = false;
+  }
+}
+
+if (argv.i) {
+  inputFile = argv.i;
+}
+
+// Headings for optional page metadata.
+// These will be prepended to the CSV output followed by the audit categories.
+// For example:
+// Name,Page type,URL,Performance,PWA,Best Practices,Accessibility,SEO
+// This line will be followed by a line for each URL successfully audited.
+// For example: John Lewis,homepage,https://johnlewis.com, 32, 40, 78, 87, 100
+let metadataValues = 'Name,Page type,URL';
+if (argv.m) {
+  metadataValues = argv.m;
+}
+
+if (argv.o) {
+  inputFile = argv.o;
+}
+
+if (argv.r) {
+  const parsedInput = parseInt(argv.r);
+  if (parsedInput) {
+    numRuns = parsedInput;
+  } else {
+    console.error(`--r option must be an integer: ${argv.r} is not valid`);
+    okToStart = false;
+  }
+}
+
+if (argv.v) {
+  console.log(`${VERSION}`);
+  okToStart = false;
+}
+
+const OPTIONS = {
+  chromeFlags: ['--headless'],
+  // logLevel: 'info'
+  onlyCategories: onlyCategories
+};
 
 // If required, delete existing output and error data.
-if (!APPEND_OUTPUT) {
-  fs.writeFile(OUTPUT, '', () => {
-    console.log('Deleted old output data');
+if (!appendOutput) {
+  fs.writeFile(outputFile, '', () => {
+  //  console.log('Deleted old output data');
   });
 }
-fs.writeFile(ERROR, '', () => {
-  console.log('Deleted old error data\n');
+fs.writeFile(ERROR_LOG, '', () => {
+//  console.log('Deleted old error data');
 });
 
-// Get page data from CSV file INPUT and run an audit for each page.
-// Each line in INPUT begins with a URL followed (optionally) by other CSV data.
+// Get page data from CSV file inputFile and run an audit for each page.
+// Each line in inputFile begins with a URL followed (optionally) by other CSV data.
 // For example: https://johnlewis.com,John Lewis,homepage
-const inputFileText = fs.readFileSync(INPUT, 'utf8').trim();
+const inputFileText = fs.readFileSync(inputFile, 'utf8').trim();
 // Note that no checks are done on the validity of inputData.
 const inputData = inputFileText.split('\n');
 
+// data will be an array of objects, one for each URL audited.
+// Each object will have median Lighthouse scores and (optional) metadata.
 let data = [];
-audit(inputData);
+if (okToStart) {
+  audit(inputData);
+}
 
 // Run a Lighthouse audit for a web page.
-// data is data for all audit runs for all pages
-// pages is an array of CSV strings, each ending with a URL.
+// The pages parameter is an array of CSV strings, each ending with a URL.
 // For example: John Lewis,homepage,https://johnlewis.com
 function audit(pages) {
-  console.log(`Run ${runIndex + 1}: URL ${pageIndex + 1} of ${pages.length}`);
-  // page corresponds to a line of data in the CSV file INPUT.
+  console.log(`Run ${runIndex + 1} of ${numRuns}: ` +
+    `URL ${pageIndex + 1} of ${pages.length}`);
+  // page corresponds to a line of data in the CSV file inputFile.
   const page = pages[pageIndex];
   // The page URL is the last item on each line of CSV data.
   // Note that split() in the line below doesn't work if URLs have commas.
@@ -104,25 +171,25 @@ function audit(pages) {
           data[pageIndex].scores[category.title].push(score);
         }
       }
-      // const pageScores = `${page},${scores.join(',')}\n`;
-      // If there are still pages to audit, call audit() again.
     }
   }).catch(error => {
     logError(`Caught error for ${url}:\n${error}`);
   }).finally(() => {
-    // If more pages still to audit on this run, begin next audit.
-    // Otherwise if there are more runs to do, begin next run.
-    // Otherwise, write data to output file.
+    // If there are more pages to audit on this run, begin the next audit.
     if (++pageIndex < pages.length) {
       audit(pages);
-    } else if (++runIndex < NUM_RUNS) {
+    // Otherwise, if there are more runs to do, begin the next run.
+    } else if (++runIndex < numRuns) {
       console.log('Start run', runIndex + 1);
       pageIndex = 0;
       audit(pages);
+    // Otherwise, write data to the output file.
     } else {
-      fs.appendFileSync(OUTPUT, getOutput(data));
-      console.log('\ndata: ', getOutput(data));
-      console.log('Completed audit\n');
+      // categories is a list of Lighthouse audits completed.
+      // For example: Performance, PWA, Best practices, Accessibility, SEO
+      fs.appendFileSync(outputFile, getOutput(data));
+      console.log(`\nCompleted ${numRuns} run(s) for ${data.length} URL(s): ` +
+        `${numErrors} error(s)\n`);
     }
   });
 }
@@ -138,23 +205,24 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
   });
 }
 
-// The testResults parameter is an array of objects, each of which has
-// Lighthouse scores and (optional) metadata for each URL audited.
-// The function returns a stringified version of this array
-// with medianScores added to each object.
+// The testResults parameter is an array of objects, one for each URL audited.
+// Each object has median Lighthouse scores and (optional) metadata.
+// This function returns a string in CSV format, each line of which has
+// optional metadata followed by median Lighthouse scores for a URL.
+// For example: John Lewis,homepage,https://johnlewis.com, 32, 40, 78, 87, 100
 function getOutput(testResults) {
   let output = [];
-  console.log('Categories: ', Object.keys(testResults[0].scores));
   for (const page of testResults) {
     let pageData = [page.metadata];
     for (const scores of Object.values(page.scores)) {
-      console.log('scores:', scores);
       pageData.push(median(scores));
     }
     output.push(pageData.join(','));
   }
-  console.log('output:', output.join('\n'));
-  return output.join('\n');
+  // Prepend CSV data with headings and audit categories.
+  // For example: Name,Page type,URL,Performance,PWA, Accessibility,SEO
+  const categories = Object.keys(data[0].scores).join(',');
+  return `${metadataValues},${categories}\n${output.join('\n')}`;
 }
 
 
@@ -174,6 +242,7 @@ function median(array) {
 }
 
 function logError(error) {
+  numErrors++;
   console.error(`>>>> ${error}`);
-  fs.appendFileSync(ERROR, `${error}\n\n`);
+  fs.appendFileSync(ERROR_LOG, `${error}\n\n`);
 }

@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/samdutton/eperf/issues"
   },
-  "homepage": "https://github.com/samdutton/eperf#readme"
+  "homepage": "https://github.com/samdutton/eperf#readme",
+  "dependencies": {
+    "yargs": "^12.0.5"
+  }
 }
