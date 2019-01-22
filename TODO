@@ -1,3 +1,7 @@
-Options:
-• num runs (default 3)
-• only categories (default Peformance, 
+**TODO**
+
+• Allow for desktop, mobile or both.
+
+• Warn for scores that are significantly different from other runs.
+
+• Add an option to run Multihouse as a cron job.

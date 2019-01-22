@@ -29,6 +29,7 @@ let numRuns = 3;
 let outputFile = 'output.csv';
 let onlyCategories =
   ['performance','pwa','best-practices','accessibility', 'seo'];
+let scoreMethod = 'median';
 
 let okToStart = true;
 
@@ -41,6 +42,7 @@ const argv = require('yargs')
   .alias('m', 'metadata')
   .alias('o', 'output')
   .alias('r', 'runs')
+  .alias('s', 'score-method')
   .describe('a', 'Append output to existing data in output file')
   .describe('c', 'Audits to run: one or more comma-separated values,\n' +
     'default is:\n' + `${onlyCategories.join(',')}`)
@@ -49,8 +51,9 @@ const argv = require('yargs')
   .describe('i', `Input file, default is ${inputFile}`)
   .describe('m', 'Headings for optional page metadata')
   .describe('o', `Output file, default is ${outputFile}`)
-  .describe('r', 'Number of times audits are run to calculate median values, ' +
+  .describe('r', 'Number of times Lighthouse audits are run for each URL, ' +
     `default is ${numRuns}`)
+  .describe('s', `Method of score aggregation, default is ${scoreMethod}`)
   .help('h')
   .argv;
 
@@ -103,6 +106,15 @@ if (argv.r) {
     numRuns = parsedInput;
   } else {
     console.error(`--r option must be an integer: ${argv.r} is not valid`);
+    okToStart = false;
+  }
+}
+
+if (argv.s) {
+  if (/^(average|median)$/.test(argv.s)) {
+    scoreMethod = argv.s;
+  } else {
+    console.error(`--s option must be average or median: ${argv.s} is not valid`);
     okToStart = false;
   }
 }
@@ -164,6 +176,7 @@ function audit(pages) {
     if (error) {
       logError(`Runtime error for ${url}:\n${error}\n`);
     } else {
+      // *** Add code here if you want to save complete Lighthouse reports ***
       const categories = Object.values(results.categories);
       for (let category of categories) {
         if (!data[pageIndex].scores) {
@@ -225,7 +238,8 @@ function getOutput(testResults) {
   for (const page of testResults) {
     let pageData = [page.metadata];
     for (const scores of Object.values(page.scores)) {
-      pageData.push(median(scores));
+      // Only options at present are median and average
+      pageData.push(scoreMethod === 'median' ? median(scores) : average(scores));
     }
     output.push(pageData.join(','));
   }
@@ -237,6 +251,11 @@ function getOutput(testResults) {
 
 
 // Utility functions
+
+function average(array) {
+  const sum = array.reduce((a, b) => a + b);
+  return Math.round(sum / array.length);
+}
 
 function median(array) {
   array = array.sort((a, b) => a - b);
