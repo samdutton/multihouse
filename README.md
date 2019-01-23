@@ -3,9 +3,12 @@ Get Lighthouse scores for multiple URLs.
 You can specify multiple different options using the flags below.
 
 For example:
-• The number of times Lighthouse tests each URL. The default is three.
-• Whether to calculate the average or median scores for all the runs. The default is median.
-• Which Lighthouse audits to run. The default is all audits: Performance, Best practice, PWA, Accessibility, SEO.
+
+* The number of times Lighthouse tests each URL. The default is three.
+
+* Whether to calculate the average or median scores for all the runs. The default is median.
+
+* Which Lighthouse audits to run. The default is all audits: Performance, Best practice, PWA, Accessibility, SEO.
 
 
 **Installation and operation**
@@ -40,20 +43,20 @@ _input.csv_ and _output.csv_ in this repo both include real example data.
 
 **Error handling**  
 
-• Lighthouse runtime errors are logged in _error-log.txt_.
+* Lighthouse runtime errors are logged in _error-log.txt_.
 
-• Any audit that returns a zero score is disregarded, and a warning for the URL and score is logged in _error-log.txt_.
+* Any audit that returns a zero score is disregarded, and a warning for the URL and score is logged in _error-log.txt_.
 
-• URLs with Lighthouse errors are not included in output data.
+* URLs with Lighthouse errors are not included in output data.
 
 
 **More options**  
 
-• It's straightforward to log the complete Lighthouse report for each run. By default only aggregate audit scores are recorded. Look for the code in [`index.js`](src/index.js) marked `***`.
+* It's straightforward to log the complete Lighthouse report for each run. By default only aggregate audit scores are recorded. Look for the code in [`index.js`](src/index.js) marked `***`.
 
-• The data from [`output.csv`](src/output.csv) can easily be used to update a spreadsheet and produce charts using an application such as Google Sheets.
+* The data from [`output.csv`](src/output.csv) can easily be used to update a spreadsheet and produce charts using an application such as Google Sheets.
 
-• See [`TODO`](TODO) for work in progress.
+* See [`TODO`](TODO) for work in progress.
 
 
 **Command line options**
