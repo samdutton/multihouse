@@ -1,29 +1,26 @@
-Get Lighthouse scores for multiple URLs.
+**Get Lighthouse scores for multiple URLs.**
+
+This app takes URLS and optional metadata from [_input.csv_](src/input.csv) (one row per URL), runs one or more audits synchronously, and outputs median scores to [_output.csv_](src/output.csv). There is an example of the output for top e-commerce sites at go/ecdata.
 
 You can specify multiple different options using the flags below.
 
 For example:
 
 * The number of times Lighthouse tests each URL. The default is three.
-
 * Whether to calculate the average or median scores for all the runs. The default is median.
-
 * Which Lighthouse audits to run. The default is all audits: Performance, Best practice, PWA, Accessibility, SEO.
+
 
 
 **Installation and operation**
 
 1. Clone or download the code.
-
-2. Add URLs to be audited (and optional metadata) to _input.csv_, as described below.
-
+2. Add URLs to be audited (and optional metadata) to [_input.csv_](src/input.csv), as described below.
 3. From a terminal `cd` to the `src` directory and run `node index.js`, optionally setting the flags below. 
-
 4. Progress updates and errors will be logged to the console. 
-
-5. When all Lighthouse runs are complete, view the results in _output.csv_.
-
+5. When all Lighthouse runs are complete, view the results in [_output.csv_](src/output.csv).
 6. Check for errors in _error-log.txt_.
+
 
 
 **Input and output data format**
@@ -41,22 +38,20 @@ Results are written to [_output.csv_](src/output.csv) with one line per URL. For
 _input.csv_ and _output.csv_ in this repo both include real example data.
 
 
+
 **Error handling**  
 
 * Lighthouse runtime errors are logged in _error-log.txt_.
-
 * Any audit that returns a zero score is disregarded, and a warning for the URL and score is logged in _error-log.txt_.
-
 * URLs with Lighthouse errors are not included in output data.
 
 
 **More options**  
 
 * It's straightforward to log the complete Lighthouse report for each run. By default only aggregate audit scores are recorded. Look for the code in [`index.js`](src/index.js) marked `***`.
-
 * The data from [`output.csv`](src/output.csv) can easily be used to update a spreadsheet and produce charts using an application such as Google Sheets.
-
 * See [`TODO`](TODO) for work in progress.
+
 
 
 **Command line options**
