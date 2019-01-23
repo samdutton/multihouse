@@ -10,6 +10,8 @@ For example:
 - Whether to calculate the average or median scores for all the runs. The default is median.
 - Which Lighthouse audits to run. The default is all audits: Performance, Best practice, PWA, Accessibility, SEO.
 
+---
+
 ## Installation and usage
 
 1. Clone or download the code.
@@ -41,12 +43,6 @@ _input.csv_ and _output.csv_ in this repo both include real example data.
 - URLs with Lighthouse errors are not included in output data.
 
 
-##  More options
-
-- It's straightforward to log the complete Lighthouse report for each run. By default only aggregate audit scores are recorded. Look for the code in [`index.js`](src/index.js) marked `***`.
-- The data from [`output.csv`](src/output.csv) can easily be used to update a spreadsheet and produce charts using an application such as Google Sheets.
-- See [`TODO`](TODO) for work in progress.
-
 ## Command line options
 
 ```
@@ -64,6 +60,14 @@ _input.csv_ and _output.csv_ in this repo both include real example data.
 -r, --runs        Number of times audits are run to calculate median scores,
                   default is 3
 ```
+
+##  More
+
+- It's straightforward to log the complete Lighthouse report for each run. By default only aggregate audit scores are recorded. Look for the code in [`index.js`](src/index.js) marked `***`.
+- The data from [`output.csv`](src/output.csv) can easily be used to automatically update a spreadsheet and produce charts using an application such as Google Sheets.
+- See [`TODO`](TODO) for work in progress.
+
+
 ---
 
 Please note that this is not an official Google product.
