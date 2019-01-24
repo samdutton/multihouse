@@ -46,19 +46,20 @@ _input.csv_ and _output.csv_ in this repo both include real example data.
 ## Command line options
 
 ```
--a, --append      Append output to existing data in output file
--c, --categories  Audits to run: one or more comma-separated values,
-                  default is:
-                  performance,pwa,best-practices,accessibility,seo
--f, --flags       One or more comma-separated Chrome flags without dashes,
-                  default is --headless
--h, --help        Show help                                         
--i, --input       Input file, default is input.csv
--m, --metadata    Optional column headings to be used as the first row of 
-                  _output.csv_, for example: Page, Type, Performance, SEO
--o, --output      Output file, default is output.csv
--r, --runs        Number of times audits are run to calculate median scores,
-                  default is 3
+-a, --append        Append output to existing data in output file
+-c, --categories    Audits to run: one or more comma-separated values,
+                    default is:
+                    performance,pwa,best-practices,accessibility,seo
+-f, --flags         One or more comma-separated Chrome flags without dashes,
+                    default is --headless
+-h, --help          Show help                                         
+-i, --input         Input file, default is input.csv
+-m, --metadata      Optional column headings to be used as the first row of 
+                    _output.csv_, for example: Page, Type, Performance, SEO
+-o, --output        Output file, default is output.csv
+-r, --runs          Number of times audits are run to calculate median scores,
+                    default is 3
+-s, --score-method  Method of score aggregation, default is median
 ```
 
 ##  More
