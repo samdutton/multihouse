@@ -5,3 +5,5 @@
 • Warn for scores that are significantly different from other runs.
 
 • Add an option to run Multihouse as a cron job.
+
+• Add option to run on desktop or mobile or both.
