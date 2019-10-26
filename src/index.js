@@ -171,9 +171,8 @@ function audit(pages) {
     };
   }
   launchChromeAndRunLighthouse(url, OPTIONS).then((results) => {
-    const error = results.runtimeError.message;
-    if (error) {
-      logError(`Runtime error for ${url}:\n${error}\n`);
+    if (results.runtimeError) {
+      logError(`Runtime error for ${url}:\n${results.runtimeError.message}\n`);
     } else {
       // *** Add code here if you want to save complete Lighthouse reports ***
       const categories = Object.values(results.categories);
