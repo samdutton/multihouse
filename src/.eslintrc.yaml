@@ -1,0 +1,22 @@
+env:
+  browser: true
+  es6: true
+  node: true
+extends: google
+globals:
+  goog: false
+parserOptions: 
+  ecmaVersion: 2017
+rules:
+  curly: error
+  guard-for-in: off
+  indent: [error, 2]
+  max-len: [error, 120]
+  no-floating-decimal: error
+  no-new: warn
+  no-undef: error
+  no-var: error
+  prefer-const: error
+  quotes: [error, single, {"avoidEscape": true, "allowTemplateLiterals": true}]
+  require-jsdoc: off
+  valid-jsdoc: off

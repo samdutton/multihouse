@@ -26,9 +26,9 @@ let appendOutput = false;
 let chromeFlags = ['--headless'];
 let inputFile = 'input.csv';
 let numRuns = 3;
-let outputFile = 'output.csv';
+const outputFile = 'output.csv';
 let onlyCategories =
-  ['performance','pwa','best-practices','accessibility', 'seo'];
+  ['performance', 'pwa', 'best-practices', 'accessibility', 'seo'];
 let scoreMethod = 'median';
 
 let okToStart = true;
@@ -65,18 +65,17 @@ if (argv.c) {
   const isValid =
     /(performance|pwa|best-practices|accessibility|seo|,)+/.test(argv.c);
   if (isValid) {
-    console.log('', );
     onlyCategories = argv.c.split(',');
     console.log(`Auditing categories: ${onlyCategories}`);
   } else {
-    console.error('--c option must be one or more comma-separated values: ' +
+    displayError('--c option must be one or more comma-separated values: ' +
       `${argv.c} is not valid`);
     okToStart = false;
   }
 }
 
 if (argv.f) {
-  chromeFlags = argv.f.split(',').map(flag => {
+  chromeFlags = argv.f.split(',').map((flag) => {
     return `--${flag}`;
   });
 }
@@ -97,7 +96,7 @@ if (argv.m) {
 }
 
 if (argv.o) {
-  inputFile = argv.o;
+  outputFile = argv.o;
 }
 
 if (argv.r) {
@@ -105,7 +104,7 @@ if (argv.r) {
   if (parsedInput) {
     numRuns = parsedInput;
   } else {
-    console.error(`--r option must be an integer: ${argv.r} is not valid`);
+    displayError(`--r option must be an integer: ${argv.r} is not valid`);
     okToStart = false;
   }
 }
@@ -114,7 +113,7 @@ if (argv.s) {
   if (/^(average|median)$/.test(argv.s)) {
     scoreMethod = argv.s;
   } else {
-    console.error(`--s option must be average or median: ${argv.s} is not valid`);
+    displayError(`--s option must be average or median: ${argv.s} is not valid`);
     okToStart = false;
   }
 }
@@ -127,7 +126,7 @@ if (argv.v) {
 const OPTIONS = {
   chromeFlags: chromeFlags,
   // logLevel: 'info'
-  onlyCategories: onlyCategories
+  onlyCategories: onlyCategories,
 };
 
 // If required, delete existing output and error data.
@@ -149,7 +148,7 @@ const inputData = inputFileText.split('\n');
 
 // data will be an array of objects, one for each URL audited.
 // Each object will have median Lighthouse scores and (optional) metadata.
-let data = [];
+const data = [];
 if (okToStart) {
   audit(inputData);
 }
@@ -168,17 +167,17 @@ function audit(pages) {
   // data is an array of objects: metadata and scores for each URL.
   if (!data[pageIndex]) {
     data[pageIndex] = {
-      metadata: page
+      metadata: page,
     };
   }
-  launchChromeAndRunLighthouse(url, OPTIONS).then(results => {
+  launchChromeAndRunLighthouse(url, OPTIONS).then((results) => {
     const error = results.runtimeError.message;
     if (error) {
       logError(`Runtime error for ${url}:\n${error}\n`);
     } else {
       // *** Add code here if you want to save complete Lighthouse reports ***
       const categories = Object.values(results.categories);
-      for (let category of categories) {
+      for (const category of categories) {
         if (!data[pageIndex].scores) {
           data[pageIndex].scores = {};
         }
@@ -187,7 +186,7 @@ function audit(pages) {
         }
         const score = Math.round(category.score * 100);
         if (score === 0) {
-          logError(`Zero ${category.title} score for ${url}. 
+          logError(`Zero ${category.title} score for ${url}.
           This data will be discarded.`);
         } else {
           console.log(`${url}: ${category.title} ${score}`);
@@ -195,7 +194,7 @@ function audit(pages) {
         }
       }
     }
-  }).catch(error => {
+  }).catch((error) => {
     logError(`Caught error for ${url}:\n${error}`);
   }).finally(() => {
     // If there are more pages to audit on this run, begin the next audit.
@@ -212,7 +211,7 @@ function audit(pages) {
       // For example: Performance, PWA, Best practices, Accessibility, SEO
       fs.appendFileSync(outputFile, getOutput(data));
       console.log(`\nCompleted ${numRuns} run(s) for ${data.length} URL(s): ` +
-        `${numErrors} error(s)\n`);
+        `${numErrors} error(s)\nView output: ${outputFile}\n`);
     }
   });
 }
@@ -220,9 +219,9 @@ function audit(pages) {
 // Launch Chrome, run a Lighthouse audit, then kill Chrome.
 // Code is from https://github.com/GoogleChrome/lighthouse
 function launchChromeAndRunLighthouse(url, opts, config = null) {
-  return chromeLauncher.launch({chromeFlags: opts.chromeFlags}).then(chrome => {
+  return chromeLauncher.launch({chromeFlags: opts.chromeFlags}).then((chrome) => {
     opts.port = chrome.port;
-    return lighthouse(url, opts, config).then(results => {
+    return lighthouse(url, opts, config).then((results) => {
       return chrome.kill().then(() => results.lhr);
     });
   });
@@ -234,9 +233,9 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
 // optional metadata followed by median Lighthouse scores for a URL.
 // For example: John Lewis,homepage,https://johnlewis.com, 32, 40, 78, 87, 100
 function getOutput(testResults) {
-  let output = [];
+  const output = [];
   for (const page of testResults) {
-    let pageData = [page.metadata];
+    const pageData = [page.metadata];
     for (const scores of Object.values(page.scores)) {
       // Only options at present are median and average
       pageData.push(scoreMethod === 'median' ? median(scores) : average(scores));
@@ -262,7 +261,7 @@ function median(array) {
   if (array.length === 0) {
     return 0;
   }
-  var middle = Math.floor(array.length / 2);
+  const middle = Math.floor(array.length / 2);
   if (array.length % 2) {
     return array[middle];
   } else {
@@ -270,8 +269,15 @@ function median(array) {
   }
 }
 
+function displayError(...args) {
+  const color = '\x1b[31m'; // red
+  const reset = '\x1b[0m'; // reset color
+  console.error(color, '>>> Error:', reset, ...args);
+}
+
 function logError(error) {
   numErrors++;
-  console.error(`>>>> ${error}`);
+  displayError(`>>> ${error}`);
   fs.appendFileSync(ERROR_LOG, `${error}\n\n`);
 }
+
