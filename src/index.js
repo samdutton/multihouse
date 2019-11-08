@@ -153,6 +153,20 @@ if (okToStart) {
   audit(inputData);
 }
 
+// We assume that each input line contains at least 3 comma-separated values.
+// Only the last value - URL - may contain commas.
+// We join all items after two first if the array of data contains more then 3 items.
+function getUrl(page) {
+  let url;
+  const pageParts = page.split(',');
+  if (pageParts.length > 3) {
+	url = pageParts.slice(2, pageParts.length).join();
+  } else {
+   url = pageParts[2];
+  }
+  return url;
+}
+
 // Run a Lighthouse audit for a web page.
 // The pages parameter is an array of CSV strings, each ending with a URL.
 // For example: John Lewis,homepage,https://johnlewis.com
@@ -162,8 +176,7 @@ function audit(pages) {
   // page corresponds to a line of data in the CSV file inputFile.
   const page = pages[pageIndex];
   // The page URL is the last item on each line of CSV data.
-  // Note that split() in the line below doesn't work if URLs have commas.
-  const url = page.split(',').slice(-1)[0];
+  const url = getUrl(page);
   // data is an array of objects: metadata and scores for each URL.
   if (!data[pageIndex]) {
     data[pageIndex] = {
