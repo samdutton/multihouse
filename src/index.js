@@ -153,6 +153,13 @@ if (okToStart) {
   audit(inputData);
 }
 
+// First two pageParts are website name and page name. 
+// URL may contain commas.
+function getUrl(page) {
+  const pageParts = page.split(',');
+  return pageParts.slice(2, pageParts.length).join();
+}
+
 // Run a Lighthouse audit for a web page.
 // The pages parameter is an array of CSV strings, each ending with a URL.
 // For example: John Lewis,homepage,https://johnlewis.com
@@ -162,8 +169,7 @@ function audit(pages) {
   // page corresponds to a line of data in the CSV file inputFile.
   const page = pages[pageIndex];
   // The page URL is the last item on each line of CSV data.
-  // Note that split() in the line below doesn't work if URLs have commas.
-  const url = page.split(',').slice(-1)[0];
+  const url = getUrl(page);
   // data is an array of objects: metadata and scores for each URL.
   if (!data[pageIndex]) {
     data[pageIndex] = {
@@ -279,4 +285,3 @@ function logError(error) {
   displayError(`>>> ${error}`);
   fs.appendFileSync(ERROR_LOG, `${error}\n\n`);
 }
-
