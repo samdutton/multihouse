@@ -153,18 +153,11 @@ if (okToStart) {
   audit(inputData);
 }
 
-// We assume that each input line contains at least 3 comma-separated values.
-// Only the last value - URL - may contain commas.
-// We join all items after two first if the array of data contains more then 3 items.
+// First two pageParts are website name and page name. 
+// URL may contain commas.
 function getUrl(page) {
-  let url;
   const pageParts = page.split(',');
-  if (pageParts.length > 3) {
-	url = pageParts.slice(2, pageParts.length).join();
-  } else {
-   url = pageParts[2];
-  }
-  return url;
+  return pageParts.slice(2, pageParts.length).join();
 }
 
 // Run a Lighthouse audit for a web page.
@@ -292,4 +285,3 @@ function logError(error) {
   displayError(`>>> ${error}`);
   fs.appendFileSync(ERROR_LOG, `${error}\n\n`);
 }
-
