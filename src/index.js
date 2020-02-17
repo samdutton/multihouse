@@ -26,7 +26,9 @@ let appendOutput = false;
 let chromeFlags = ['--headless'];
 let inputFile = 'input.csv';
 let numRuns = 3;
-const outputFile = 'output.csv';
+let outputFile = 'output.csv';
+let outputAudits = false;
+const metadataAudits = [];
 let onlyCategories =
   ['performance', 'pwa', 'best-practices', 'accessibility', 'seo'];
 let scoreMethod = 'median';
@@ -41,6 +43,7 @@ const argv = require('yargs')
   .alias('i', 'input')
   .alias('m', 'metadata')
   .alias('o', 'output')
+  .alias('t','audits')
   .alias('r', 'runs')
   .alias('s', 'score-method')
   .describe('a', 'Append output to existing data in output file')
@@ -51,6 +54,7 @@ const argv = require('yargs')
   .describe('i', `Input file, default is ${inputFile}`)
   .describe('m', 'Headings for optional page metadata')
   .describe('o', `Output file, default is ${outputFile}`)
+  .describe('t',`Generate audit scores to output file`)
   .describe('r', 'Number of times Lighthouse audits are run for each URL, ' +
     `default is ${numRuns}`)
   .describe('s', `Method of score aggregation, default is ${scoreMethod}`)
@@ -97,6 +101,10 @@ if (argv.m) {
 
 if (argv.o) {
   outputFile = argv.o;
+}
+
+if (argv.t) {
+  outputAudits = true;
 }
 
 if (argv.r) {
@@ -198,6 +206,22 @@ function audit(pages) {
           data[pageIndex].scores[category.title].push(score);
         }
       }
+      if(outputAudits){
+        console.log('Adding audits to output')
+        const audits = Object.values(results.audits);
+        for (const audit of audits){
+          //check if metadata for audits not added yet
+          if(metadataAudits.length < audits.length){
+            metadataAudits.push(audit.title);
+          }
+
+          if(!data[pageIndex].audits){
+            data[pageIndex].audits = {};
+          }
+          data[pageIndex].audits[audit.id] = audit.score;
+        }
+      }
+      
     }
   }).catch((error) => {
     logError(`Caught error for ${url}:\n${error}`);
@@ -210,7 +234,7 @@ function audit(pages) {
       console.log('Start run', runIndex + 1);
       pageIndex = 0;
       audit(pages);
-    // Otherwise, write data to the output file.
+    // Otherwise, write data to the   t file.
     } else {
       // categories is a list of Lighthouse audits completed.
       // For example: Performance, PWA, Best practices, Accessibility, SEO
@@ -245,12 +269,23 @@ function getOutput(testResults) {
       // Only options at present are median and average
       pageData.push(scoreMethod === 'median' ? median(scores) : average(scores));
     }
+
+    // Output audits
+    for (const audit of Object.values(page.audits)) {
+      // Only options at present are median and average
+      pageData.push(audit);
+    }
+
     output.push(pageData.join(','));
   }
   // Prepend CSV data with headings and audit categories.
   // For example: Name,Page type,URL,Performance,PWA, Accessibility,SEO
   const categories = Object.keys(data[0].scores).join(',');
-  return `${metadataValues},${categories}\n${output.join('\n')}`;
+  const audits = metadataAudits.join(',');
+  if(outputAudits)
+    return `${metadataValues},${categories},${audits}\n${output.join('\n')}`; 
+   else
+    return `${metadataValues},${categories}\n${output.join('\n')}`;
 }
 
 
