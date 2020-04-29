@@ -26,7 +26,13 @@ let appendOutput = false;
 let chromeFlags = ['--headless'];
 let inputFile = 'input.csv';
 let numRuns = 3;
-const outputFile = 'output.csv';
+let outputFile = 'output.csv';
+let outputAudits = false;
+let outputVitals = false;
+const metrics = ['time-to-first-byte', 'first-contentful-paint',
+  'largest-contentful-paint', 'speed-index', 'max-potential-fid',
+  'first-cpu-idle', 'total-blocking-time', 'cumulative-layout-shift'];
+const metadataAudits = [];
 let onlyCategories =
   ['performance', 'pwa', 'best-practices', 'accessibility', 'seo'];
 let scoreMethod = 'median';
@@ -41,6 +47,8 @@ const argv = require('yargs')
   .alias('i', 'input')
   .alias('m', 'metadata')
   .alias('o', 'output')
+  .alias('t', 'audits')
+  .alias('n', 'Include vitals metrics to audit output')
   .alias('r', 'runs')
   .alias('s', 'score-method')
   .describe('a', 'Append output to existing data in output file')
@@ -51,6 +59,7 @@ const argv = require('yargs')
   .describe('i', `Input file, default is ${inputFile}`)
   .describe('m', 'Headings for optional page metadata')
   .describe('o', `Output file, default is ${outputFile}`)
+  .describe('t', `Generate audit scores to output file`)
   .describe('r', 'Number of times Lighthouse audits are run for each URL, ' +
     `default is ${numRuns}`)
   .describe('s', `Method of score aggregation, default is ${scoreMethod}`)
@@ -97,6 +106,14 @@ if (argv.m) {
 
 if (argv.o) {
   outputFile = argv.o;
+}
+
+if (argv.t) {
+  outputAudits = true;
+}
+
+if (argv.n) {
+  outputVitals = true;
 }
 
 if (argv.r) {
@@ -153,7 +170,7 @@ if (okToStart) {
   audit(inputData);
 }
 
-// First two pageParts are website name and page name. 
+// First two pageParts are website name and page name.
 // URL may contain commas.
 function getUrl(page) {
   const pageParts = page.split(',');
@@ -199,6 +216,42 @@ function audit(pages) {
           data[pageIndex].scores[category.title].push(score);
         }
       }
+
+      if (outputVitals) {
+        console.log('Adding metrics to page test.');
+        for (const metric of metrics) {
+          if (!data[pageIndex].metrics) {
+            data[pageIndex].metrics = {};
+          }
+          if (!data[pageIndex].metrics[metric]) {
+            data[pageIndex].metrics[metric] = [];
+          }
+          const metricValue = results.audits[metric].numericValue;
+          if (metricValue === 0) {
+            logError(`Zero ${results.audits[metric].score} score for ${url}.
+            This data will be discarded.`);
+          } else {
+            console.log(`${url}: ${metric} ${metricValue}`);
+            data[pageIndex].metrics[metric].push(metricValue);
+          }
+        }
+      }
+
+      if (outputAudits) {
+        console.log('Adding audits to output');
+        const audits = Object.values(results.audits);
+        for (const audit of audits) {
+          // Check if metadata for audits not added yet.
+          if (metadataAudits.length < audits.length) {
+            metadataAudits.push(audit.title);
+          }
+
+          if (!data[pageIndex].audits) {
+            data[pageIndex].audits = {};
+          }
+          data[pageIndex].audits[audit.id] = audit.score;
+        }
+      }
     }
   }).catch((error) => {
     logError(`Caught error for ${url}:\n${error}`);
@@ -211,13 +264,13 @@ function audit(pages) {
       console.log(`\nStart run ${runIndex + 1}`);
       pageIndex = 0;
       audit(pages);
-    // Otherwise, write data to the output file.
+    // Otherwise, write data to the   t file.
     } else {
       // categories is a list of Lighthouse audits completed.
       // For example: Performance, PWA, Best practices, Accessibility, SEO
       fs.appendFileSync(outputFile, getOutput(data));
-      console.log(`\nCompleted ${numRuns} run(s) for ${data.length} URL(s): ` +
-        `${numErrors} error(s)\nView output: ${outputFile}\n`);
+      console.log(`\nCompleted ${numRuns} run(s) for ${data.length} URL(s)` +
+        `with ${numErrors} error(s).\n\nView output: ${outputFile}\n`);
     }
   });
 }
@@ -241,17 +294,41 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
 function getOutput(testResults) {
   const output = [];
   for (const page of testResults) {
+    // console.log(page);
     const pageData = [page.metadata];
     for (const scores of Object.values(page.scores)) {
       // Only options at present are median and average
-      pageData.push(scoreMethod === 'median' ? median(scores) : average(scores));
+      pageData.push(scoreMethod === 'median' ?
+        median(scores) : average(scores));
+    }
+
+    if (outputVitals) {
+      for (const metricScores of Object.values(page.metrics)) {
+        // Only options at present are median and average
+        pageData.push(scoreMethod === 'median' ?
+          median(metricScores) : average(metricScores));
+      }
+    }
+
+    if (outputAudits) {
+      for (const audit of Object.values(page.audits)) {
+        // Only options at present are median and average
+        pageData.push(audit);
+      }
     }
     output.push(pageData.join(','));
   }
   // Prepend CSV data with headings and audit categories.
   // For example: Name,Page type,URL,Performance,PWA, Accessibility,SEO
   const categories = Object.keys(data[0].scores).join(',');
-  return `${metadataValues},${categories}\n${output.join('\n')}`;
+  const audits = metadataAudits.join(',');
+  if (outputAudits) {
+    return `${metadataValues},${categories},${audits}\n${output.join('\n')}`;
+  } else if (outputVitals) {
+    return `${metadataValues},${categories},${metrics}\n${output.join('\n')}`;
+  } else {
+    return `${metadataValues},${categories}\n${output.join('\n')}`;
+  }
 }
 
 
@@ -279,12 +356,12 @@ function median(array) {
 function displayError(...args) {
   const color = '\x1b[31m'; // red
   const reset = '\x1b[0m'; // reset color
-  console.error(color, '\n>>> Error:\n', reset, ...args);
+  console.error(color, '\n>>> Error: ', reset, ...args);
 }
 
 // Log an error to the console and write it to the ERROR_LOG file.
 function logError(error) {
   numErrors++;
-  displayError(`${error}`);
+  displayError(`${error}\n`);
   fs.appendFileSync(ERROR_LOG, `${error}\n\n`);
 }
