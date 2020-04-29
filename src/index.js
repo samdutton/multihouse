@@ -181,22 +181,23 @@ function getUrl(page) {
 // The pages parameter is an array of CSV strings, each ending with a URL.
 // For example: John Lewis,homepage,https://johnlewis.com
 function audit(pages) {
-  console.log(`Run ${runIndex + 1} of ${numRuns}: ` +
+  console.log(`\nRun ${runIndex + 1} of ${numRuns}: ` +
     `URL ${pageIndex + 1} of ${pages.length}`);
   // page corresponds to a line of data in the CSV file inputFile.
   const page = pages[pageIndex];
   // The page URL is the last item on each line of CSV data.
   const url = getUrl(page);
-  // data is an array of objects: metadata and scores for each URL.
-  if (!data[pageIndex]) {
-    data[pageIndex] = {
-      metadata: page,
-    };
-  }
   launchChromeAndRunLighthouse(url, OPTIONS).then((results) => {
     if (results.runtimeError) {
-      logError(`Runtime error for ${url}:\n${results.runtimeError.message}\n`);
+      logError(`Lighthouse runtime error for ` +
+        `${url}.\n\n${results.runtimeError.message}\n`);
     } else {
+      // data is an array of objects: metadata and scores for each URL.
+      if (!data[pageIndex]) {
+        data[pageIndex] = {
+          metadata: page,
+        };
+      }
       // *** Add code here if you want to save complete Lighthouse reports ***
       const categories = Object.values(results.categories);
       for (const category of categories) {
@@ -208,8 +209,8 @@ function audit(pages) {
         }
         const score = Math.round(category.score * 100);
         if (score === 0) {
-          logError(`Zero ${category.title} score for ${url}.
-          This data will be discarded.`);
+          logError(`Zero ${category.title} score for ${url}. ` +
+            `This data will be discarded.`);
         } else {
           console.log(`${url}: ${category.title} ${score}`);
           data[pageIndex].scores[category.title].push(score);
@@ -255,12 +256,12 @@ function audit(pages) {
   }).catch((error) => {
     logError(`Caught error for ${url}:\n${error}`);
   }).finally(() => {
-    // If there are more pages to audit on this run, begin the next audit.
+    // If there are more pages to audit on this run, begin the next page audit.
     if (++pageIndex < pages.length) {
       audit(pages);
     // Otherwise, if there are more runs to do, begin the next run.
     } else if (++runIndex < numRuns) {
-      console.log('Start run', runIndex + 1);
+      console.log(`\nStart run ${runIndex + 1}`);
       pageIndex = 0;
       audit(pages);
     // Otherwise, write data to the   t file.
@@ -268,8 +269,8 @@ function audit(pages) {
       // categories is a list of Lighthouse audits completed.
       // For example: Performance, PWA, Best practices, Accessibility, SEO
       fs.appendFileSync(outputFile, getOutput(data));
-      console.log(`\nCompleted ${numRuns} run(s) for ${data.length} URL(s): ` +
-        `${numErrors} error(s)\nView output: ${outputFile}\n`);
+      console.log(`\nCompleted ${numRuns} run(s) for ${data.length} URL(s)` +
+        `with ${numErrors} error(s).\n\nView output: ${outputFile}\n`);
     }
   });
 }
@@ -293,17 +294,19 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
 function getOutput(testResults) {
   const output = [];
   for (const page of testResults) {
-    console.log(page);
+    // console.log(page);
     const pageData = [page.metadata];
     for (const scores of Object.values(page.scores)) {
       // Only options at present are median and average
-      pageData.push(scoreMethod === 'median' ? median(scores) : average(scores));
+      pageData.push(scoreMethod === 'median' ?
+        median(scores) : average(scores));
     }
 
     if (outputVitals) {
       for (const metricScores of Object.values(page.metrics)) {
         // Only options at present are median and average
-        pageData.push(scoreMethod === 'median' ? median(metricScores) : average(metricScores));
+        pageData.push(scoreMethod === 'median' ?
+          median(metricScores) : average(metricScores));
       }
     }
 
@@ -349,14 +352,16 @@ function median(array) {
   }
 }
 
+// Log an error to the console.
 function displayError(...args) {
   const color = '\x1b[31m'; // red
   const reset = '\x1b[0m'; // reset color
-  console.error(color, '>>> Error:', reset, ...args);
+  console.error(color, '\n>>> Error: ', reset, ...args);
 }
 
+// Log an error to the console and write it to the ERROR_LOG file.
 function logError(error) {
   numErrors++;
-  displayError(`>>> ${error}`);
+  displayError(`${error}\n`);
   fs.appendFileSync(ERROR_LOG, `${error}\n\n`);
 }
