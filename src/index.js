@@ -28,6 +28,8 @@ let inputFile = 'input.csv';
 let numRuns = 3;
 let outputFile = 'output.csv';
 let outputAudits = false;
+let outputVitals = false;
+let metrics = ['time-to-first-byte','first-contentful-paint','largest-contentful-paint','speed-index','max-potential-fid','first-cpu-idle','total-blocking-time','cumulative-layout-shift'];
 const metadataAudits = [];
 let onlyCategories =
   ['performance', 'pwa', 'best-practices', 'accessibility', 'seo'];
@@ -44,6 +46,7 @@ const argv = require('yargs')
   .alias('m', 'metadata')
   .alias('o', 'output')
   .alias('t','audits')
+  .alias('n','Include vitals metrics to audit output')
   .alias('r', 'runs')
   .alias('s', 'score-method')
   .describe('a', 'Append output to existing data in output file')
@@ -105,6 +108,10 @@ if (argv.o) {
 
 if (argv.t) {
   outputAudits = true;
+}
+
+if (argv.n) {
+  outputVitals = true;
 }
 
 if (argv.r) {
@@ -206,6 +213,27 @@ function audit(pages) {
           data[pageIndex].scores[category.title].push(score);
         }
       }
+
+      if(outputVitals){
+        console.log('Adding metrics to page test.');
+        for (const metric of metrics) {
+          if (!data[pageIndex].metrics) {
+            data[pageIndex].metrics = {};
+          }
+          if (!data[pageIndex].metrics[metric]) {
+            data[pageIndex].metrics[metric] = [];
+          }
+          const metricValue = results.audits[metric].numericValue;
+          if (metricValue === 0) {
+            logError(`Zero ${results.audits[metric].score} score for ${url}.
+            This data will be discarded.`);
+          } else {
+            console.log(`${url}: ${metric} ${metricValue}`);
+            data[pageIndex].metrics[metric].push(metricValue);
+          }
+        }
+      }
+
       if(outputAudits){
         console.log('Adding audits to output')
         const audits = Object.values(results.audits);
@@ -264,18 +292,26 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
 function getOutput(testResults) {
   const output = [];
   for (const page of testResults) {
+    console.log(page);
     const pageData = [page.metadata];
     for (const scores of Object.values(page.scores)) {
       // Only options at present are median and average
       pageData.push(scoreMethod === 'median' ? median(scores) : average(scores));
     }
 
-    // Output audits
-    for (const audit of Object.values(page.audits)) {
-      // Only options at present are median and average
-      pageData.push(audit);
+    if(outputVitals){
+      for (const metricScores of Object.values(page.metrics)) {
+        // Only options at present are median and average
+        pageData.push(scoreMethod === 'median' ? median(metricScores) : average(metricScores));
+      }
     }
 
+    if(outputAudits){
+      for (const audit of Object.values(page.audits)) {
+        // Only options at present are median and average
+        pageData.push(audit);
+      }
+    }
     output.push(pageData.join(','));
   }
   // Prepend CSV data with headings and audit categories.
@@ -284,7 +320,9 @@ function getOutput(testResults) {
   const audits = metadataAudits.join(',');
   if(outputAudits)
     return `${metadataValues},${categories},${audits}\n${output.join('\n')}`; 
-   else
+  else if(outputVitals)
+    return `${metadataValues},${categories},${metrics}\n${output.join('\n')}`; 
+  else
     return `${metadataValues},${categories}\n${output.join('\n')}`;
 }
 
