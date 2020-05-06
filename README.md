@@ -24,14 +24,15 @@ For example:
 
 ## Input and output data format
 
-Each line in [_input.csv_](src/input.csv) begins with a URL, optionally followed by other comma-separated data for the URL.
+Each line in [_input.csv_](src/input.csv) consists of a site name, a page type and a URL.
 
 For example:
 ```
   My site,homepage,https://example.com
 ```
-Results are written to [_output.csv_](src/output.csv) with one line per URL. For example:
+Audit results are written to [_output.csv_](src/output.csv) with one line per URL.
 
+For example:
 ```
   My site,homepage,https://example.com,0.50,0.38,0.78,0.87,1
 ```

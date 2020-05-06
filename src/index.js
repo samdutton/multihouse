@@ -48,7 +48,7 @@ const argv = require('yargs')
   .alias('m', 'metadata')
   .alias('o', 'output')
   .alias('t', 'audits')
-  .alias('n', 'Include vitals metrics to audit output')
+  .alias('n', 'vitals')
   .alias('r', 'runs')
   .alias('s', 'score-method')
   .describe('a', 'Append output to existing data in output file')
@@ -58,6 +58,7 @@ const argv = require('yargs')
     `default is ${chromeFlags}`)
   .describe('i', `Input file, default is ${inputFile}`)
   .describe('m', 'Headings for optional page metadata')
+  .describe('n', 'Include Web Vitals metrics in audit output')
   .describe('o', `Output file, default is ${outputFile}`)
   .describe('t', `Generate audit scores to output file`)
   .describe('r', 'Number of times Lighthouse audits are run for each URL, ' +
@@ -156,16 +157,16 @@ fs.writeFile(ERROR_LOG, '', () => {
 //  console.log('Deleted old error data');
 });
 
-// Get page data from CSV file inputFile and run an audit for each page.
-// Each line in inputFile begins with a URL followed (optionally) by other CSV data.
-// For example: https://johnlewis.com,John Lewis,homepage
+// Get page data from CSV file inputFile.
+// Each line in inputFile represents a web page, with CSV values for
+// page name, page type and page URL.
+// For example: John Lewis,homepage,https://johnlewis.com,
+// Note that no checks are done on the validity of inputFile or its data.
 const inputFileText = fs.readFileSync(inputFile, 'utf8').trim();
-// Note that no checks are done on the validity of inputData.
 const inputData = inputFileText.split('\n');
 
-// data will be an array of objects, one for each URL audited.
-// Each object will have median Lighthouse scores and (optional) metadata.
 const data = [];
+// okToStart is set to false if the app is being run to get the version number.
 if (okToStart) {
   audit(inputData);
 }
@@ -189,7 +190,7 @@ function audit(pages) {
   const url = getUrl(page);
   launchChromeAndRunLighthouse(url, OPTIONS).then((results) => {
     if (results.runtimeError) {
-      logError(`Lighthouse runtime error for ` +
+      displayAndWriteError(`Lighthouse runtime error for ` +
         `${url}.\n\n${results.runtimeError.message}\n`);
     } else {
       // data is an array of objects: metadata and scores for each URL.
@@ -209,7 +210,7 @@ function audit(pages) {
         }
         const score = Math.round(category.score * 100);
         if (score === 0) {
-          logError(`Zero ${category.title} score for ${url}. ` +
+          displayAndWriteError(`Zero ${category.title} score for ${url}. ` +
             `This data will be discarded.`);
         } else {
           console.log(`${url}: ${category.title} ${score}`);
@@ -228,7 +229,7 @@ function audit(pages) {
           }
           const metricValue = results.audits[metric].numericValue;
           if (metricValue === 0) {
-            logError(`Zero ${results.audits[metric].score} score for ${url}.
+            displayAndWriteError(`Zero ${results.audits[metric].score} score for ${url}.
             This data will be discarded.`);
           } else {
             console.log(`${url}: ${metric} ${metricValue}`);
@@ -254,7 +255,7 @@ function audit(pages) {
       }
     }
   }).catch((error) => {
-    logError(`Caught error for ${url}:\n${error}`);
+    displayAndWriteError(`Caught error for ${url}:\n${error}`);
   }).finally(() => {
     // If there are more pages to audit on this run, begin the next page audit.
     if (++pageIndex < pages.length) {
@@ -360,8 +361,8 @@ function displayError(...args) {
 }
 
 // Log an error to the console and write it to the ERROR_LOG file.
-function logError(error) {
+function displayAndWriteError(error) {
   numErrors++;
   displayError(`${error}\n`);
-  fs.appendFileSync(ERROR_LOG, `${error}\n\n`);
+  fs.appendFileSync(ERROR_LOG, `Error ${numErrors}: ${error}\n\n`);
 }
