@@ -1,6 +1,6 @@
 {
   "name": "eperf",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Run Lighthouse audits for multiple pages",
   "main": "index.js",
   "scripts": {
@@ -20,9 +20,12 @@
   },
   "homepage": "https://github.com/samdutton/eperf#readme",
   "dependencies": {
-    "chrome-launcher": "^0.13.1",
-    "eslint": "^6.6.0",
+    "chrome-launcher": "^0.13.2",
+    "eslint": "^7.0.0",
     "lighthouse": "^6.0.0-beta.0",
-    "yargs": "^14.2.0"
+    "yargs": "^15.3.1"
+  },
+  "devDependencies": {
+    "stylelint-config-recommended": "^3.0.0"
   }
 }
