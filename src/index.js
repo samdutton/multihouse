@@ -58,23 +58,24 @@ const argv = require('yargs')
   .alias('i', 'input')
   .alias('m', 'metadata')
   .alias('o', 'output')
-  .alias('t', 'audits')
   .alias('r', 'runs')
   .alias('s', 'score-method')
+  .alias('t', 'all-audits')
   .alias('w', 'web-vitals')
   .describe('a', 'Append output to existing data in output file')
   .describe('c', 'Categories to test: one or more comma-separated values,\n' +
-    'default is:\n' + `${categories.join(',')}`)
+    'default is: ' + `${categories.join(',')}`)
   .describe('f', 'One or more comma-separated Chrome flags *without* dashes,\n' +
     `default is ${chromeFlags}`)
   .describe('i', `Input file, default is ${inputFile}`)
   .describe('m', 'Headings for optional page information')
   .describe('o', `Output file, default is ${outputFile}`)
-  .describe('t', `Include all individual audit scores in output`)
-  .describe('r', 'Number of times Lighthouse audits are run for each URL, ' +
+  .describe('r', 'Number of times Lighthouse is run for each URL,\n' +
     `default is ${numRuns}`)
-  .describe('s', `Method of score aggregation, default is ${scoreMethod}`)
-  .describe('w', 'Include Web Vitals in output')
+  .describe('s', `Method of score averaging over multiple runs,\n` +
+    `default is ${scoreMethod}`)
+  .describe('t', `Include all individual audit scores in output`)
+  .describe('w', 'Include Web Vitals audits in output')
   .help('h')
   .argv;
 
@@ -122,10 +123,6 @@ if (argv.o) {
   outputFile = argv.o;
 }
 
-if (argv.t) {
-  outputAllAudits = true;
-}
-
 if (argv.r) {
   const parsedInput = parseInt(argv.r);
   if (parsedInput) {
@@ -150,7 +147,14 @@ if (argv.v) {
   okToStart = false;
 }
 
-if (argv.w) {
+if (argv.t && argv.w) {
+  outputAllAudits = true;
+  outputWebVitals = false;
+  console.log('\nIncluding scores for all audits including Web Vitals');
+} else if (argv.t) {
+  outputAllAudits = true;
+  console.log('\nIncluding scores for all audits');
+} else if (argv.w) {
   outputWebVitals = true;
   console.log('\nIncluding scores for Web Vitals audits');
 }
@@ -210,8 +214,8 @@ function audit(pages) {
   const page = pages[pageIndex];
   launchChromeAndRunLighthouse(page.url, OPTIONS).then((results) => {
     if (results.runtimeError) {
-      displayAndWriteError(`Lighthouse runtime error for ` +
-        `${page.url}.\n\n${results.runtimeError.message}\n`);
+      displayAndWriteError(`Lighthouse error for ` +
+        `${page.url}.\n\n${results.runtimeError.message}`);
     } else {
       // If this is the first run for the current page,
       // add an item for it to results.
@@ -221,11 +225,13 @@ function audit(pages) {
       handleResults(page.url, results);
     }
   }).catch((error) => {
-    displayAndWriteError(`Caught error for ${page.url}:\n${error}`);
+    const message = page.url === '' ? 'Empty URL' :
+      `Caught error for ${page.url}:\n${error}`;
+    displayAndWriteError(message);
   }).finally(checkIfFinished);
 }
 
-// Launch Chrome, run a Lighthouse audit, then kill Chrome.
+// Launch Chrome and run Lighthouse for a single page.
 // Code is from https://github.com/GoogleChrome/lighthouse
 function launchChromeAndRunLighthouse(url, opts, config = null) {
   return chromeLauncher.launch({chromeFlags: opts.chromeFlags}).then((chrome) => {
@@ -268,7 +274,7 @@ function addCategoryScores(url, results) {
     }
     const score = Math.round(category.score * 100);
     if (score === 0) {
-      displayAndWriteError(`Zero ${category.title} score for ${url}. ` +
+      displayAndWriteError(`Zero '${category.title}' score for ${url}. ` +
         `This data will be discarded.`);
     } else {
       console.log(`${url}: ${category.title} ${score}`);
@@ -283,7 +289,7 @@ function addCategoryScores(url, results) {
 // See https://web.dev/vitals.
 // TODO: might be possible to combine this with addAuditScores().
 function addWebVitalsScores(url, results) {
-  console.log(`Adding Web Vitals audit scores for ${url}.`);
+  console.log(`\nAdding Web Vitals audit scores for ${url}.`);
   // Check if this audit has already been added to results,
   // i.e. on a previous run.
   for (const auditID of webVitalsAuditIDs) {

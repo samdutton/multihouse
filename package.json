@@ -1,14 +1,14 @@
 {
-  "name": "eperf",
-  "version": "1.0.2",
+  "name": "multihouse",
+  "version": "1.2.0",
   "description": "Run Lighthouse audits for multiple pages",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"TODO: contributions welcome!\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/samdutton/eperf.git"
+    "url": "git+https://github.com/samdutton/multihouse.git"
   },
   "keywords": [
     "lighthouse"
@@ -16,9 +16,9 @@
   "author": "open .",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/samdutton/eperf/issues"
+    "url": "https://github.com/samdutton/multihouse/issues"
   },
-  "homepage": "https://github.com/samdutton/eperf#readme",
+  "homepage": "https://github.com/samdutton/multihouse#readme",
   "dependencies": {
     "chrome-launcher": "^0.13.2",
     "eslint": "^7.0.0",

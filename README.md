@@ -2,13 +2,19 @@
 
 This app takes URLs and optional metadata from [_input.csv_](src/input.csv) (one row per URL), runs one or more audits synchronously, and outputs median scores to [_output.csv_](src/output.csv).
 
-You can specify multiple different options using the flags below.
+You can specify multiple different options using the command line options below.
 
 For example:
 
-- The number of times Lighthouse tests each URL. The default is three.
+- The number of times Lighthouse is run for each URL. The default is three.
 - Whether to calculate the average or median scores for all the runs. The default is median.
 - Which Lighthouse audits to run. The default is all audits: Performance, Best practice, PWA, Accessibility, SEO.
+- Whether to include results for all individual audits or for [Web Vitals](https://web.dev/vitals).
+
+By default the app only outputs category scores for each page: Performance, PWA, 
+Best practices, Accessibility and SEO. Lighthouse calculates these single scores
+based on multiple individual audit scores. If you prefer, you can output results 
+for all individual audits by using the `-t` flag, or Web Vitals with the `-w` flag.
 
 ---
 
@@ -30,19 +36,22 @@ For example:
 ```
   My site,homepage,https://example.com
 ```
+
+See [_sample-input.csv_](src/sample-input.csv) for an example input file.
+
 Audit results are written to [_output.csv_](src/output.csv) with one line per URL.
 
 For example:
 ```
   My site,homepage,https://example.com,0.50,0.38,0.78,0.87,1
 ```
-_input.csv_ and _output.csv_ in this repo both include real example data.
+See [_sample-output.csv_](src/sample-output.csv) for an example output file.
 
 ## Error handling
 
 - Lighthouse runtime errors are logged in _error-log.txt_.
 - Any audit that returns a zero score is disregarded, and a warning for the URL and score is logged in _error-log.txt_.
-- URLs with Lighthouse errors are not included in output data.
+- Lighthouse results with errors are not included in output data.
 
 
 ## Command line options
@@ -57,17 +66,25 @@ _input.csv_ and _output.csv_ in this repo both include real example data.
 -h, --help          Show help
 -i, --input         Input file, default is input.csv
 -m, --metadata      Optional column headings to be used as the first row of
-                    _output.csv_, for example: Page, Type, Performance, SEO
+                    _output.csv_. See [_sample-output.csv_](src/sample-output.csv) 
+                    for defaults.
 -o, --output        Output file, default is output.csv
--r, --runs          Number of times audits are run to calculate median scores,
+-r, --runs          Number of times Lighthouse is run for each page, 
                     default is 3
--s, --score-method  Method of score aggregation, default is median
+-s, --score-method  Method of score averaging over multiple runs, 
+                    default is median
+-t, --all-audits    Include all individual audit scores in output
+-w, --web-vitals    Include Web Vitals audits in output
 ```
 
 ##  More
 
-- It's straightforward to log the complete Lighthouse report for each run. By default only aggregate audit scores are recorded. Look for the code in [`index.js`](src/index.js) marked `***`.
-- The data from [`output.csv`](src/output.csv) can easily be used to automatically update a spreadsheet and produce charts using an application such as Google Sheets.
+- It's straightforward to log the complete Lighthouse report for each run. 
+  By default only category scores are recorded, which are single, aggregate 
+  scores calculated from individual audit scores. Look for the code 
+  in [`index.js`](src/index.js) marked `***`.
+- The data from [`output.csv`](src/output.csv) can easily be used to automatically 
+  update a spreadsheet and produce charts using an application such as Google Sheets.
 - See [`TODO`](TODO) for work in progress.
 
 

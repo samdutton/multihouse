@@ -1,0 +1,16 @@
+Name,Page,type,URL,Performance,PWA,Best practices,Accessibility,SEO
+Ace Hardware,home,https://www.acehardware.com,23,86,73,90,50
+Ace Hardware,category,https://www.acehardware.com/departments/outdoor-living/grills-and-smokers,15,82,73,76,46
+Ace Hardware,product,https://www.acehardware.com/departments/outdoor-living/grills-and-smokers/gas-grills/8863367,13,65,73,82,46
+Bed Bath & Beyond,home,https://www.bedbathandbeyond.com,11,85,0,92,39
+Bed Bath & Beyond,category,https://www.bedbathandbeyond.com/store/category/home-decor/10004/,10,83,0,92,39
+Bed Bath & Beyond,product,https://www.bedbathandbeyond.com/store/product/wamsutta-reg-500-thread-count-pimacott-reg-sheet-collection/234926,6,83,0,82,39
+Lands' End,home,https://www.landsend.com,2,83,60,91,32
+Lands' End,category,https://www.landsend.com/shop/mens-dress-shirts/-/N-fzl,4,81,60,91,32
+Lands' End,product,https://www.landsend.com/products/mens-short-sleeve-swim-tee-rash-guard/id_332281,9,82,47,91,32
+Neiman Marcus,home,https://www.neimanmarcus.com,5,85,67,85,25
+Neiman Marcus,category,https://www.neimanmarcus.com/en-gb/c/shoes-cat000141,8,80,67,85,21
+Neiman Marcus,product,https://www.neimanmarcus.com/p/burberry-thornaby-short-sleeve-check-sport-shirt-prod198990444,7,79,60,85,21
+Ulta,home,https://www.ulta.com,16,98,87,92,29
+Ulta,category,https://www.ulta.com/hair?N=26wz,33,82,80,85,29
+Ulta,product,https://www.ulta.com/perfect-hair-day-phd-dry-shampoo?productId=xlsImpprod13031193,22,95,87,92,29
