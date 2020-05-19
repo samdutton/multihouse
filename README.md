@@ -85,7 +85,7 @@ See [_sample-output.csv_](src/sample-output.csv) for an example output file.
   in [`index.js`](src/index.js) marked `***`.
 - The data from [`output.csv`](src/output.csv) can easily be used to automatically 
   update a spreadsheet and produce charts using an application such as Google Sheets.
-- See [`TODO`](TODO) for work in progress.
+- See [`TODO.md`](TODO.md) for work in progress.
 
 
 ---
