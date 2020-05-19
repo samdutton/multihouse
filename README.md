@@ -1,4 +1,4 @@
-# Get Lighthouse scores for multiple URLs
+# Multiple Lighthouse runs for multiple URLs
 
 This app takes URLs and optional metadata from [_input.csv_](src/input.csv) (one row per URL), runs one or more audits synchronously, and outputs median scores to [_output.csv_](src/output.csv).
 
