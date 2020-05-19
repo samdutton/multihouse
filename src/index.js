@@ -114,7 +114,7 @@ if (argv.i) {
 // • Categories: 'Performance,PWA,Best Practices,Accessibility,SEO'
 // This first line will be followed by a line for each URL successfully audited.
 // For example: John Lewis,homepage,https://johnlewis.com, 32, 40, 78, 87, 100
-let pageHeadings = ['Name', 'Page', 'type', 'URL'];
+let pageHeadings = ['Name', 'Page type', 'URL'];
 if (argv.m) {
   pageHeadings = argv.m.split(',');
 }

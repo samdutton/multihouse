@@ -1,0 +1,8 @@
+
+Name, type, URL, Performance, PWA, Best practices, Accessibility, SEO
+My shop, Home, https://example.com, 2, 83, 60, 91, 32
+My shop, Category, https://example.com/foo, 4, 81, 60, 91, 32
+My shop, Product, https://example.com/foo/bar, 9, 82, 47, 91, 32
+Another shop, Home, https://another-example.com, 5, 85, 67, 85, 25
+Another shop, Category, https://another-example.com/baz, 8, 80, 67, 85, 21
+Another shop, Product, https://another-example.com/baz/flob, 7, 79, 60, 85, 21
