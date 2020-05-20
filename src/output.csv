@@ -1,2 +1,2 @@
-Name,Page type,URL,Performance,PWA,Best practices,Accessibility,SEO
-Example, Home page, https://example.com,100,92,100,90,46
+Name,Page type,URL,Performance,PWA,Best practices,Accessibility,SEO,TTFB,FCP,LCP,Speed Index,FID,First CPU Idle,TBT,CLS
+Example, Home page, https://example.com,100,92,100,90,46,0,970.9825000000001,970.9825000000001,970.9825000000001,16,1223.6544250029624,0

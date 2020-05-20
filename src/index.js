@@ -34,9 +34,9 @@ let outputAllAudits = false;
 // Output Web Vitals data.
 let outputWebVitals = false;
 
-const webVitalsAuditIDs = ['time-to-first-byte', 'first-contentful-paint',
-  'largest-contentful-paint', 'speed-index', 'max-potential-fid',
-  'first-cpu-idle', 'total-blocking-time', 'cumulative-layout-shift'];
+const webVitalsAuditIDs = ['cumulative-layout-shift', 'first-contentful-paint',
+  'first-cpu-idle', 'largest-contentful-paint', 'max-potential-fid',
+  'speed-index', 'total-blocking-time'];
 const webVitalsTitles = ['TTFB', 'FCP', 'LCP', 'Speed Index', 'FID',
   'First CPU Idle', 'TBT', 'CLS'];
 // audit titles are collected from Lighthouse results.
@@ -150,13 +150,13 @@ if (argv.v) {
 if (argv.t && argv.w) {
   outputAllAudits = true;
   outputWebVitals = false;
-  console.log('\nIncluding scores for all audits including Web Vitals');
+  console.log('\nIncluding scores for all audits including Web Vitals\n');
 } else if (argv.t) {
   outputAllAudits = true;
   console.log('\nIncluding scores for all audits');
 } else if (argv.w) {
   outputWebVitals = true;
-  console.log('\nIncluding scores for Web Vitals audits');
+  console.log('\nIncluding scores for Web Vitals audits\n');
 }
 
 const OPTIONS = {
@@ -199,6 +199,7 @@ function getUrl(page) {
 
 // okToStart is set to false if the app is being run to get the version number.
 if (okToStart) {
+  console.log(`Running Lighthouse for ${pages.length} page(s) in ${inputFile}`);
   audit(pages);
 }
 
@@ -218,7 +219,7 @@ function audit(pages) {
         `${page.url}.\n\n${results.runtimeError.message}`);
     } else {
       // If this is the first run for the current page,
-      // add an item for it to results.
+      // push an item for it to the outputData array.
       if (!outputData[pageIndex]) {
         outputData[pageIndex] = page;
       }
@@ -293,19 +294,27 @@ function addWebVitalsScores(url, results) {
   // Check if this audit has already been added to results,
   // i.e. on a previous run.
   for (const auditID of webVitalsAuditIDs) {
-    if (!outputData[pageIndex].webVitalsScores) {
-      outputData[pageIndex].webVitalsScores = {};
-    }
-    if (!outputData[pageIndex].webVitalsScores[auditID]) {
-      outputData[pageIndex].webVitalsScores[auditID] = [];
-    }
-    // numericValue is a measured value (such as milliseconds for FCP)
-    // whereas score is a rating between 0 and 1.
-    const numericValue = results.audits[auditID].numericValue;
-    if (results.audits[auditID].scoreDisplayMode === 'error') {
+    // In case Web Vitals audit IDs change...
+    if (!results.audits[auditID] ||
+        // ...or there is an error getting a score.
+        results.audits[auditID].scoreDisplayMode === 'error') {
       displayAndWriteError(`Error getting ${auditID} score for ${url}.`);
     } else {
+      // If this is the first time Web Vitals scores have been added for this page.
+      // TODO: not run this for each call to this function.
+      if (!outputData[pageIndex].webVitalsScores) {
+        outputData[pageIndex].webVitalsScores = {};
+      }
+      // If this is the first time a score for this audit been added for this page.
+      // (Scores are pushed to an array and then averaged before writing output.)
+      // TODO: not run this for each call to this function.
+      if (!outputData[pageIndex].webVitalsScores[auditID]) {
+        outputData[pageIndex].webVitalsScores[auditID] = [];
+      }
+      const numericValue = results.audits[auditID].numericValue;
       console.log(`${url}: ${auditID} ${numericValue}`);
+      // numericValue is a measured value (such as milliseconds for FCP)
+      // whereas each category score is an aggregated rating between 0 and 1.
       outputData[pageIndex].webVitalsScores[auditID].push(numericValue);
     }
   }
@@ -359,7 +368,7 @@ function checkIfFinished() {
 // If the outputWebVitals flag is set, Web Vitals scores will be appended.
 // The results parameter is an array of objects, one for each page audited.
 // Each object includes page info and Lighthouse results.
-function createOutputCSV(results) {
+function createOutputCSV(outputData) {
   const output = [];
   // Begin outputCSV with column headings.
   // • Page info headings: Name, page type, URL.
@@ -373,10 +382,17 @@ function createOutputCSV(results) {
 
   // Add scores for each page successfully audited.
   // results is an array of objects, one for each page audited.
-  for (const page of results) {
+  //
+  for (let i = 0; i !== outputData.length; ++i) {
+    const page = outputData[i];
     // Ignore pages where Lighthouse couldn't get scores (e.g. for 404 or 403).
-    if (!page.categoryScores) {
-      console.log(`No scores available for ${getUrl(page)}.`);
+    // TODO: refactor to avoid outputData including empty items when Lighthouse
+    // couldn't be run for a page in input.csv (e.g. because of malformed CSV).
+    if (!page) {
+      displayError(`Couldn't run Lighthouse for line ${i + 1} in ${inputFile}.`);
+      continue;
+    } else if (!page.categoryScores) {
+      console.log(`No scores available for ${page.url}.`);
       continue;
     }
 
