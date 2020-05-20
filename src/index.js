@@ -302,9 +302,8 @@ function addWebVitalsScores(url, results) {
     // numericValue is a measured value (such as milliseconds for FCP)
     // whereas score is a rating between 0 and 1.
     const numericValue = results.audits[auditID].numericValue;
-    if (numericValue === 0) {
-      displayAndWriteError(`Zero ${results.audits[audit].score} score ` +
-      `for ${url}. This data will be discarded.`);
+    if (results.audits[auditID].scoreDisplayMode === 'error') {
+      displayAndWriteError(`Error getting ${auditID} score for ${url}.`);
     } else {
       console.log(`${url}: ${auditID} ${numericValue}`);
       outputData[pageIndex].webVitalsScores[auditID].push(numericValue);
