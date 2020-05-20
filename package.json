@@ -1,6 +1,6 @@
 {
   "name": "multihouse",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Run Lighthouse audits for multiple pages",
   "main": "index.js",
   "scripts": {
