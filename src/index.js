@@ -36,9 +36,9 @@ let outputWebVitals = false;
 
 const webVitalsAuditIDs = ['cumulative-layout-shift', 'first-contentful-paint',
   'first-cpu-idle', 'largest-contentful-paint', 'max-potential-fid',
-  'speed-index', 'total-blocking-time'];
-const webVitalsTitles = ['TTFB', 'FCP', 'LCP', 'Speed Index', 'FID',
-  'First CPU Idle', 'TBT', 'CLS'];
+  'speed-index', 'time-to-first-byte', 'total-blocking-time'];
+const webVitalsTitles = ['CLS', 'FCP', 'First CPU Idle', 'LCP', 'FID',
+  'Speed Index', 'TTFB', 'TBT'];
 // audit titles are collected from Lighthouse results.
 const auditTitles = new Set();
 // Each category is an aggregate score based on multiple audit scores.
