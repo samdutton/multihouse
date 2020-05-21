@@ -217,8 +217,8 @@ function audit(pages) {
       displayAndWriteError(`Lighthouse error for ` +
         `${page.url}.\n\n${results.runtimeError.message}`);
     } else {
-      fs.appendFileSync('sample-lighthouse-results.json',
-        JSON.stringify(results));
+      // fs.appendFileSync('sample-lighthouse-results.json',
+      //   JSON.stringify(results));
       // If this is the first run for the current page,
       // push an item for it to the outputData array.
       if (!outputData[pageIndex]) {
