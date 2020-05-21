@@ -1,2 +1,2 @@
-Name,Page type,URL,Performance,PWA,Best practices,Accessibility,SEO,CLS,FCP,First CPU Idle,LCP,FID,Speed Index,TTFB,TBT
-simpl.info,Home page, https://simpl.info,100,100,100,100,96,0,1228.564,1228.564,1228.564,62,1497.7218000030875,6
+Name,Page type,URL,Performance,PWA,Best practices,Accessibility,SEO,CLS,FCP,FCI,LCP,FID,SI,SRT,TBT
+Example,Home page,https://example.com,100,92,100,90,46,0,1024.917,1024.917,1024.917,16,1478.006449995744,198.61700000000002,0

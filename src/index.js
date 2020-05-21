@@ -36,9 +36,8 @@ let outputWebVitals = false;
 
 const webVitalsAuditIDs = ['cumulative-layout-shift', 'first-contentful-paint',
   'first-cpu-idle', 'largest-contentful-paint', 'max-potential-fid',
-  'speed-index', 'time-to-first-byte', 'total-blocking-time'];
-const webVitalsTitles = ['CLS', 'FCP', 'First CPU Idle', 'LCP', 'FID',
-  'Speed Index', 'TTFB', 'TBT'];
+  'speed-index', 'server-response-time', 'total-blocking-time'];
+const webVitalsTitles = ['CLS', 'FCP', 'FCI', 'LCP', 'FID', 'SI', 'SRT', 'TBT'];
 // audit titles are collected from Lighthouse results.
 const auditTitles = new Set();
 // Each category is an aggregate score based on multiple audit scores.
@@ -218,6 +217,8 @@ function audit(pages) {
       displayAndWriteError(`Lighthouse error for ` +
         `${page.url}.\n\n${results.runtimeError.message}`);
     } else {
+      fs.appendFileSync('sample-lighthouse-results.json',
+        JSON.stringify(results));
       // If this is the first run for the current page,
       // push an item for it to the outputData array.
       if (!outputData[pageIndex]) {
