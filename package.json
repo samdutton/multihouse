@@ -23,6 +23,7 @@
     "chrome-launcher": "^0.13.4",
     "eslint": "^7.9.0",
     "lighthouse": "^6.3.0",
+    "node-forge": "^0.10.0",
     "yargs": "^16.0.3"
   },
   "devDependencies": {
