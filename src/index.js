@@ -181,7 +181,6 @@ fs.writeFile(ERROR_LOG, '', () => {
 // Note that no checks are done on the validity of inputFile or its data.
 const inputFileText = fs.readFileSync(inputFile, 'utf8').trim();
 const pages = [];
-console.log('>>>>>', inputFileText.split('\r\n'));
 for (const page of inputFileText.split('\r\n')) {
   pages.push({
     page: page,
