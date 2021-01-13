@@ -181,7 +181,8 @@ fs.writeFile(ERROR_LOG, '', () => {
 // Note that no checks are done on the validity of inputFile or its data.
 const inputFileText = fs.readFileSync(inputFile, 'utf8').trim();
 const pages = [];
-for (const page of inputFileText.split('\n')) {
+console.log('>>>>>', inputFileText.split('\r\n'));
+for (const page of inputFileText.split('\r\n')) {
   pages.push({
     page: page,
     url: getUrl(page),
@@ -190,9 +191,9 @@ for (const page of inputFileText.split('\n')) {
 
 // The page URL is the third item on each line of CSV data.
 // The first two pageParts are website name and page name.
-// URLs may contain commas, hence the join().
 function getUrl(page) {
   const pageParts = page.split(',');
+  // URLs may contain commas, hence the join().
   return pageParts.slice(2, pageParts.length).join();
 }
 
