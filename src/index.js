@@ -133,10 +133,10 @@ if (argv.r) {
 }
 
 if (argv.s) {
-  if (/^(average|median)$/.test(argv.s)) {
+  if (/^(average|median|max)$/.test(argv.s)) {
     scoreMethod = argv.s;
   } else {
-    displayError(`--s option must be average or median: ${argv.s} is not valid`);
+    displayError(`--s option must be average or median or max: ${argv.s} is not valid`);
     okToStart = false;
   }
 }
@@ -407,25 +407,38 @@ function createOutputCSV(outputData) {
     // Push a median or average category score to the pageData array.
     // Categories (Performance, PWA, etc.) aggregate individual audit scores.
     for (const categoryScores of Object.values(page.categoryScores)) {
-      // Only options at present are median and average
-      pageData.push(scoreMethod === 'median' ?
-        median(categoryScores) : average(categoryScores));
+      if (scoreMethod === 'median') {
+        pageData.push(median(categoryScores))
+      } else if (scoreMethod === 'max') {
+        pageData.push(max(categoryScores))
+      } else {
+        pageData.push(average(categoryScores))
+      }
     }
 
     // If flag set, append all individual audit scores for the current page.
     if (outputAllAudits) {
       for (const auditScores of Object.values(page.auditScores)) {
-        pageData.push(scoreMethod === 'median' ?
-          median(auditScores) : average(auditScores));
+        if (scoreMethod === 'median') {
+          pageData.push(median(auditScores))
+        } else if (scoreMethod === 'max') {
+          pageData.push(max(auditScores))
+        } else {
+          pageData.push(average(auditScores))
+        }
       }
     // If flag set, add Web Vitals scores for the current page.
     // Web Vitals are a selection of audit scores.
     } else if (outputWebVitals) {
       // webVitalsScores is an array of results for a Web Vitals metric.
       for (const webVitalsScores of Object.values(page.webVitalsScores)) {
-        // Only options at present are median and average.
-        pageData.push(scoreMethod === 'median' ?
-          median(webVitalsScores) : average(webVitalsScores));
+        if (scoreMethod === 'median') {
+          pageData.push(median(webVitalsScores))
+        } else if (scoreMethod === 'max') {
+          pageData.push(max(webVitalsScores))
+        } else {
+          pageData.push(average(webVitalsScores))
+        }
       }
     }
     output.push(pageData.join(','));
@@ -454,6 +467,14 @@ function median(array) {
   } else {
     return (array[middle - 1] + array[middle]) / 2;
   }
+}
+
+function max(array) {
+  array = array.sort((a, b) => b - a)
+  if (array.length === 0) {
+    return 0
+  }
+  return array[0]
 }
 
 // Log an error to the console.
