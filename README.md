@@ -18,6 +18,10 @@ for all individual audits by using the `-t` flag, or Web Vitals with the `-w` fl
 
 ---
 
+## Requirements
+
+Node 16.7.0 or above (to support [`performance.getEntriesByName()`](https://developer.mozilla.org/en-US/docs/Web/API/Performance/getEntriesByName)).
+
 ## Installation and usage
 
 1. Clone the code using git: `git clone git@github.com:samdutton/multihouse.git` or [download it as a ZIP file](https://github.com/samdutton/multihouse/archive/master.zip).
