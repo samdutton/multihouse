@@ -20,8 +20,8 @@
   },
   "homepage": "https://github.com/samdutton/multihouse#readme",
   "dependencies": {
-    "chrome-launcher": "^0.13.4",
-    "eslint": "^9.39.1",
+    "chrome-launcher": "^1.2.1",
+    "eslint": "^10.0.0",
     "lighthouse": "^12.2.2",
     "node-forge": "^1.3.2",
     "yargs": "^16.2.0"
